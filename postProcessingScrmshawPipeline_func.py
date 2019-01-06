@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function
 
 ####################################################################################-------BRIEF DESCRIPTION------###################################################################################################
 #																																																					#
-#Date: September 2019																																																#
+#Date: September 2018																																																#
 #Purpose: This script is written to do some post processing on the SCRMshaw multiple offsets output and then Running peaks calling algorithm (MACs) in order to get more robust CRM predictions						#
 #Input: It needs two input 																																															#
 # (i) combined SCRMshaw_offset's output (including multiple training sets and multiple methods)																														#
@@ -27,8 +27,8 @@ import numpy as np
 import pandas as pd
 
 
-##############################################------------MODULES/FUNCTION---------------##########################################
-# This module will parse combined file of multiple outputs of scrmshaw to individual unique files for each of the training set and statistical method used and will return three methods dictionaries containing all the training sets as their keys
+##############################################------------FUNCTION---------------##########################################
+# This functions will parse combined file of multiple outputs of scrmshaw to individual unique files for each of the training set and statistical method used and will return three methods dictionaries containing all the training sets as their keys
 def parse_output(outfile,numparse): 
 	# creating three separate dictionaries based on methods used  
 	d_hexmcd={}
@@ -123,7 +123,7 @@ def parse_output(outfile,numparse):
 
 #------------------------------------------------------------------------------------------------------
 
-# This module will extract user specified number of predictions from each of the offset for the given training set
+# This function will extract user specified number of predictions from each of the offset for the given training set
 def extract_topN_scrms(fullLengthFilePath,cutoff,method,TSET):
 	#extract num of scrms from offset
 	extractedFileName=str(cutoff)+'.'+method+'_'+TSET+'.bed'
@@ -145,7 +145,7 @@ def extract_topN_scrms(fullLengthFilePath,cutoff,method,TSET):
 	
 	return path
 #---------------------------------------------------------------------------------------------------------------------------
-#This module taked the tab delimited file and returns bed version of it to perform the functions of bed
+#This function taked the tab delimited file and returns bed version of it to perform the functions of bed
 
 def bed_conversion(tab_delimited_path):
 	
@@ -154,7 +154,7 @@ def bed_conversion(tab_delimited_path):
 	return bed_tabdelimited
 
 #---------------------------------------------------------------------------------------------------------------------------
-#This module will take in tab delimited file path and convert it into py bed version of that file(on which bedtools functions can be applied like sort/merge etc) and return its path
+#This function will take in tab delimited file path and convert it into py bed version of that file(on which bedtools functions can be applied like sort/merge etc) and return its path
 def bedtools_sorting(extractedScrmsPathBED,sortedFileName):
 	
 	extractedScrmsPathBED.sort().saveas(subdirectory+'/'+sortedFileName)	
@@ -170,7 +170,7 @@ def bedtools_sorting(extractedScrmsPathBED,sortedFileName):
 	
 	
 #---------------------------------------------------------------------------------------------------------------------------
-#This module will take in BED file and sum up the score for each of the 10 bp overlapping window and return every 10 bp window with its score(i.e summed)
+#This function will take in BED file and sum up the score for each of the 10 bp overlapping window and return every 10 bp window with its score(i.e summed)
 def sum_of_score(sortedFilePath,sortedFileName,sumOfScoreFileName):
 	#calculating sum of score and saving it to a dictionary
 	diction={}
@@ -239,7 +239,7 @@ def sum_of_score(sortedFilePath,sortedFileName,sumOfScoreFileName):
 	
 	return path
 #---------------------------------------------------------------------------------------------------------------------------
-#This module will take in BED file and return whole genome coverage including any of the missing coordinates with the score value of 0.
+#This function will take in BED file and return whole genome coverage including any of the missing coordinates with the score value of 0.
 def filling_missing_coords(sortedSumOfScoreFilePath,wholeGenomeFileName):
 	with open(sortedSumOfScoreFilePath,'r') as infile,open(os.path.join(subdirectory,wholeGenomeFileName),'w') as outfile:
 		prevEnd=0
@@ -274,7 +274,7 @@ def filling_missing_coords(sortedSumOfScoreFilePath,wholeGenomeFileName):
 	
 	return path
 #---------------------------------------------------------------------------------------------------------------------------
-#This module will run MACS program through system call.
+#This function will run MACS program through system call.
 def callingMACS(wholeGenomeFilePath,macsOutputName,cutoff):
 	subprocess.call(["macs2","bdgpeakcall","-i",wholeGenomeFilePath,"-c",str(cutoff),"-o",str(macsOutputName)])
 	
@@ -282,7 +282,7 @@ def callingMACS(wholeGenomeFilePath,macsOutputName,cutoff):
 	
 	return path
 #---------------------------------------------------------------------------------------------------------------------------
-#This module is converting the output of MACs(narrowPeak) file to a BED version of it (more like a SCRMshaw output)
+#This function is converting the output of MACs(narrowPeak) file to a BED version of it (more like a SCRMshaw output)
 def peaksToScrms(macsOutputPath,peaksToScrmsName,TSET):
 
 	with open(macsOutputPath,'r') as infile, open(os.path.join(subdirectory,peaksToScrmsName),'w') as outfile:
@@ -312,7 +312,7 @@ def peaksToScrms(macsOutputPath,peaksToScrmsName,TSET):
 	return path
 	
 #---------------------------------------------------------------------------------------------------------------------------
-#This module will retrieve the SCRMshaw score of the peaks by intersecting it with SCRMshaw prediction file
+#This function will retrieve the SCRMshaw score of the peaks by intersecting it with SCRMshaw prediction file
 def intersect_peaks_and_scrms(peaksToScrmsPathBED,extractedScrmsPathBED,intersectedFileName):
 	peaksToScrmsPathBED.intersect(extractedScrmsPathBED,loj=True).merge(c=[4,20,6,7,8,9,10,11,12,13,14,15,16],o=['max','max','distinct','distinct','distinct','distinct','distinct','distinct','distinct','distinct','distinct','distinct','distinct']).saveas(subdirectory+'/'+intersectedFileName)
 	
@@ -325,7 +325,7 @@ def intersect_peaks_and_scrms(peaksToScrmsPathBED,extractedScrmsPathBED,intersec
 	return path
 	
 #---------------------------------------------------------------------------------------------------------------------------
-#This module will sort the peaks output file according to the amplitude of their peaks and rank it based on that.
+#This function will sort the peaks output file according to the amplitude of their peaks and rank it based on that.
 def sortAndRank_basedOnAmplitude(intersectedFilePath,finalPeaksFileName):
 	data=pd.read_csv(intersectedFilePath,delimiter='\t',header=None)
 	numOfPeaks=len(data)+1
